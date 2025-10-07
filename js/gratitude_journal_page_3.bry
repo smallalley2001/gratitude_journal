@@ -1,0 +1,148 @@
+from browser import document, window, html, alert
+
+ENTRIES_PER_PAGE = 15
+PAGINATION_GROUP = 5  # max number of page buttons to show at once
+current_page = 1
+all_entries = []
+
+# ----------------------------
+# Load all journal entries from IndexedDB
+# ----------------------------
+def load_entries(page=1):
+    global current_page
+    current_page = page
+
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = request.result
+        txn = db.transaction("journal_entries", "readonly")
+        store = txn.objectStore("journal_entries")
+        get_req = store.getAll()
+
+        def display_entries(ev):
+            global all_entries
+            all_entries = sorted(get_req.result, key=lambda e: e['date_time'], reverse=True)
+            render_page()  # render entries once fetched
+
+        get_req.bind("success", display_entries)
+
+    request.bind("success", on_success)
+
+# ----------------------------
+# Render entries and pagination
+# ----------------------------
+def render_page():
+    container = document['entries_container']
+    container.clear()
+
+    total_entries = len(all_entries)
+    total_pages = (total_entries + ENTRIES_PER_PAGE - 1) // ENTRIES_PER_PAGE
+    start_idx = (current_page - 1) * ENTRIES_PER_PAGE
+    end_idx = min(start_idx + ENTRIES_PER_PAGE, total_entries)
+
+    if total_entries == 0:
+        container <= html.DIV("No journal entries found.")
+        document['pagination_controls'].clear()
+        return
+
+    # Build entries table
+    table = html.TABLE()
+    table.className = "entries-table"
+
+    for idx, entry in enumerate(all_entries[start_idx:end_idx]):
+        row_class = "row-even" if idx % 2 == 0 else "row-odd"
+        wrapper_row = html.TR(Class=row_class)
+
+        # Wrapper cell spans both columns
+        wrapper_cell = html.TD()
+        wrapper_cell.colSpan = 2
+        wrapper_cell.style.padding = "5px"
+
+        # Nested table for entry
+        nested_table = html.TABLE()
+        nested_table.style.width = "100%"
+        nested_table.style.borderCollapse = "collapse"
+
+        # First row: date/time + delete button
+        row1 = html.TR()
+        row1 <= html.TD(entry['date_time'])
+
+        delete_btn = html.BUTTON("Delete")
+        def make_delete(entry_id):
+            return lambda ev: delete_entry(entry_id)
+        delete_btn.bind("click", make_delete(entry['id']))
+        row1 <= html.TD(delete_btn)
+        nested_table <= row1
+
+        # Second row: journal text spanning both columns
+        row2 = html.TR()
+        entry_cell = html.TD(entry['entry'])
+        entry_cell.colSpan = 2
+        row2 <= entry_cell
+        nested_table <= row2
+
+        wrapper_cell <= nested_table
+        wrapper_row <= wrapper_cell
+        table <= wrapper_row
+
+    container <= table
+
+    # Build pagination
+    pagination = document['pagination_controls']
+    pagination.clear()
+    if total_pages <= 1:
+        return
+
+    # Calculate current group of pages
+    group_start = ((current_page - 1) // PAGINATION_GROUP) * PAGINATION_GROUP + 1
+    group_end = min(group_start + PAGINATION_GROUP - 1, total_pages)
+
+    # Previous group button
+    if group_start > 1:
+        prev_btn = html.BUTTON("«")
+        prev_btn.bind("click", lambda ev: load_entries(group_start - 1))
+        pagination <= prev_btn
+
+    # Page number buttons
+    for p in range(group_start, group_end + 1):
+        btn = html.BUTTON(str(p))
+        if p == current_page:
+            btn.className = "pagination-button active"
+        else:
+            btn.className = "pagination-button"
+        btn.bind("click", lambda ev, page=p: load_entries(page))
+        pagination <= btn
+
+    # Next group button
+    if group_end < total_pages:
+        next_btn = html.BUTTON("»")
+        next_btn.bind("click", lambda ev: load_entries(group_end + 1))
+        pagination <= next_btn
+
+# ----------------------------
+# Delete a single entry
+# ----------------------------
+def delete_entry(entry_id):
+    confirm = window.confirm("Are you sure you want to delete this entry?")
+    if not confirm:
+        return
+
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = request.result
+        txn = db.transaction("journal_entries", "readwrite")
+        store = txn.objectStore("journal_entries")
+        try:
+            store.delete(entry_id)
+            txn.oncomplete = lambda ev=None: load_entries(current_page)
+        except Exception:
+            alert("Error deleting entry.")
+
+    request.bind("success", on_success)
+
+# ----------------------------
+# Initialize
+# ----------------------------
+load_entries()

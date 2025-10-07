@@ -1,0 +1,81 @@
+from browser import document, html, window, alert
+from urllib.parse import parse_qs, urlparse
+from datetime import datetime
+
+# ----------------------------
+# Helper: format date display
+# ----------------------------
+def format_date(date_str):
+    """Format date (YYYY-MM-DD) for printing"""
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        return dt.strftime("%a %b %d %Y")
+    except Exception:
+        return date_str
+
+# ----------------------------
+# Main function
+# ----------------------------
+def render_entries():
+    # Parse URL query parameters
+    query = urlparse(window.location.href).query
+    params = parse_qs(query)
+    
+    date_1 = params.get("date_1", [""])[0]
+    date_2 = params.get("date_2", [""])[0]
+
+    if not date_1 or not date_2:
+        document["print_container"] <= html.P("Invalid date range!", style={"color": "red"})
+        return
+
+    try:
+        # Convert to datetime objects for safe comparison
+        date_start = datetime.strptime(date_1, "%Y-%m-%d")
+        date_end = datetime.strptime(date_2, "%Y-%m-%d")
+    except Exception:
+        document["print_container"] <= html.P("Invalid date format!", style={"color": "red"})
+        return
+
+    container = document["print_container"]
+    container.clear()
+    container <= html.H2(f"Gratitude Journal Entries from {date_1} to {date_2}")
+
+    # Open IndexedDB
+    open_req = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = open_req.result
+        txn = db.transaction("journal_entries", "readonly")
+        store = txn.objectStore("journal_entries")
+        get_req = store.getAll()
+
+        def on_get_success(ev):
+            entries = get_req.result
+            if not entries:
+                container <= html.P("No journal entries found.")
+                return
+
+            # Sort by date/time descending
+            entries = sorted(entries, key=lambda e: e['date_time'], reverse=True)
+
+            current_date = None
+            for entry in entries:
+                # Extract only the date part
+                entry_date_str = entry['date_time'].split(" ")[0]
+                entry_date = datetime.strptime(entry_date_str, "%Y-%m-%d")
+
+                if date_start <= entry_date <= date_end:
+                    if current_date != entry_date:
+                        current_date = entry_date
+                        container <= html.H3(format_date(entry_date_str))
+                    container <= html.P(entry['entry'])
+
+        get_req.bind("success", on_get_success)
+
+    open_req.bind("success", on_success)
+    open_req.bind("error", lambda e: alert("Error opening database."))
+
+# ----------------------------
+# Initialize
+# ----------------------------
+render_entries()

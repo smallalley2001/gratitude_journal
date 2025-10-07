@@ -1,0 +1,24 @@
+from browser import document, alert
+
+def validate_dates(event):
+    date_1 = document["date_1"].value
+    date_2 = document["date_2"].value
+    
+    if not date_1 or not date_2:
+        alert("Please select both dates.")
+        event.preventDefault()
+        return
+
+    if date_2 < date_1:
+        alert("The 'To' date cannot be earlier than the 'From' date.")
+        event.preventDefault()
+        return
+    
+    # Navigate to printout.html with query parameters
+    window.location.href = f"printout.html?date_from={date_1}&date_to={date_2}"        
+
+document["printForm"].bind("submit", validate_dates)
+
+
+
+

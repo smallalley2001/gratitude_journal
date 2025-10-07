@@ -1,0 +1,223 @@
+from browser import document, window, alert
+from datetime import datetime, timedelta
+
+# ----------------------------
+# Initialize IndexedDB
+# ----------------------------
+def init_db():
+    request = window.indexedDB.open("GratitudeJournalDB", 1)
+
+    def on_upgrade_needed(event):
+        db = request.result
+        if not db.objectStoreNames.contains("settings"):
+            store = db.createObjectStore("settings", {"keyPath": "id"})
+            try:
+                store.add({"id": 1, "number_of_days": 30})
+            except Exception:
+                pass
+        if not db.objectStoreNames.contains("journal_entries"):
+            db.createObjectStore("journal_entries", {"keyPath": "id", "autoIncrement": True})
+
+    request.bind("upgradeneeded", on_upgrade_needed)
+    request.bind("success", lambda e: print("Database initialized"))
+
+init_db()
+
+# ----------------------------
+# Display current date and time
+# ----------------------------
+now = datetime.now()
+document['current_datetime'].text = f"Today is: {now.strftime('%Y-%m-%d')}"
+
+# ----------------------------
+# Get number_of_days setting
+# ----------------------------
+def get_number_of_days(callback):
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = request.result
+        txn = db.transaction("settings", "readonly")
+        store = txn.objectStore("settings")
+        get_req = store.get(1)
+
+        def display_setting(ev):
+            result = get_req.result
+            days = 30
+            if result and 'number_of_days' in result:
+                days = result['number_of_days']
+            callback(days)
+
+        get_req.bind("success", display_setting)
+
+    request.bind("success", on_success)
+
+# ----------------------------
+# Save journal entries
+# ----------------------------
+def save_journal_old(event):
+    entries = [
+        document['entry1'].value.strip(),
+        document['entry2'].value.strip(),
+        document['entry3'].value.strip()
+    ]
+
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = request.result
+        # Inline transaction and store access — Brython-safe
+        for entry_text in entries:
+            if entry_text:
+                try:
+                    db.transaction("journal_entries", "readwrite") \
+                      .objectStore("journal_entries") \
+                      .add({
+                          "date_time": now.strftime('%Y-%m-%d %H:%M:%S'),
+                          "entry": entry_text
+                      })
+                except Exception:
+                    pass
+
+        # Show alert immediately, no txn.oncomplete needed
+        alert("Journal saved successfully!")
+
+    request.bind("success", on_success)
+
+#document['save_journal_button'].bind("click", save_journal)
+
+# ----------------------------
+# Save journal entries with validation
+# ----------------------------
+def save_journal(event):
+    entries = [
+        document['entry1'].value.strip(),
+        document['entry2'].value.strip(),
+        document['entry3'].value.strip()
+    ]
+
+    # ------------------------
+    # 1. Sequential entry check
+    # ------------------------
+    if entries[1] and not entries[0]:
+        alert("Please fill Entry 1 before Entry 2.")
+        return
+    if entries[2] and not entries[1]:
+        alert("Please fill Entry 2 before Entry 3.")
+        return
+
+    # ------------------------
+    # 2. Minimum word count check
+    # ------------------------
+    for i, text in enumerate(entries):
+        if text and len(text.split()) < 3:
+            alert(f"Entry {i+1} must contain at least 3 words.")
+            return
+
+    # ------------------------
+    # 3. Duplicate check within submission
+    # ------------------------
+    non_empty_entries = [e for e in entries if e]
+    if len(non_empty_entries) != len(set(non_empty_entries)):
+        alert("Duplicate entries detected. Please make each entry unique.")
+        return
+
+    # ------------------------
+    # Nothing to save?
+    # ------------------------
+    if not any(entries):
+        alert("Please enter at least one journal entry.")
+        return
+
+    # ------------------------
+    # Save to IndexedDB (Brython-safe)
+    # ------------------------
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = request.result
+        for entry_text in entries:
+            if entry_text:
+                try:
+                    db.transaction("journal_entries", "readwrite") \
+                      .objectStore("journal_entries") \
+                      .add({
+                          "date_time": now.strftime('%Y-%m-%d %H:%M:%S'),
+                          "entry": entry_text
+                      })
+                except Exception:
+                    pass
+
+        alert("Journal saved successfully!")
+        # Optionally clear entries after saving
+        document['entry1'].value = ""
+        document['entry2'].value = ""
+        document['entry3'].value = ""
+
+    request.bind("success", on_success)
+
+document['save_journal_button'].bind("click", save_journal)
+
+
+# ----------------------------
+# View previous entries
+# ----------------------------
+def view_journal(event):
+    # Simply redirect to the entries page
+    window.location.href = "entries.html"
+
+document['view_journal_button'].bind("click", view_journal)
+
+# ----------------------------
+# Navigate to Settings page
+# ----------------------------
+def go_to_settings(ev):
+    window.location.href = "settings.html"
+    
+# Bind the button
+document['settings_button'].bind("click", go_to_settings)
+
+# ----------------------------
+# Navigate to About page
+# ----------------------------
+def go_to_about(ev):
+    window.location.href = "about.html"
+
+# Bind the button
+document['about_button'].bind("click", go_to_about)
+
+# ----------------------------
+# Delete old journal entries based on number_of_days
+# ----------------------------
+def delete_old_entries():
+    def process(number_of_days):
+        request = window.indexedDB.open("GratitudeJournalDB")
+
+        def on_success(event):
+            db = request.result
+            txn = db.transaction("journal_entries", "readwrite")
+            store = txn.objectStore("journal_entries")
+            all_req = store.getAll()
+
+            def delete_entries(ev):
+                entries = all_req.result
+                cutoff = now - timedelta(days=number_of_days)
+                for entry in entries:
+                    entry_date = datetime.strptime(entry['date_time'], '%Y-%m-%d %H:%M:%S')
+                    if entry_date < cutoff:
+                        try:
+                            store.delete(entry['id'])
+                        except Exception:
+                            pass
+                # Optional: console log
+                print(f"Old journal entries older than {number_of_days} days deleted.")
+
+            all_req.bind("success", delete_entries)
+
+        request.bind("success", on_success)
+
+    get_number_of_days(process)
+
+# Call it immediately on page load
+delete_old_entries()
+

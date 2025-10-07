@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Entries - Gratitude Journal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Cache control -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- App theme color -->
+  <meta name="theme-color" content="#4a90e2">
+
+  <!-- PWA Manifest and Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="img/gratitude_journal.png">
+  <link rel="shortcut icon" href="img/gratitude_journal.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('❌ SW registration failed:', err));
+    }
+  </script>
+</head>
+<body>
+
+  <!-- Logo -->
+  <img id="logo" src="img/gratitude_journal.png" alt="Logo">
+
+  <!-- App Name -->
+  <div id="app_name">Gratitude Journal</div>
+  <div id="version">Version 1.0</div>
+
+  <!-- Navigation Buttons -->
+  <div class="section">
+    <a href="index.html"><button class="button">Back</button></a>
+  </div>
+
+    <div class="section">
+        <form action="print.html" method="get" target="blank">
+            <button type="submit" class="button">Print</button>
+        </form>
+    </div>
+
+  <!-- Entries Table -->
+  <div id="entries_container" class="section">
+    <table class="entries-table" id="entries_table">
+      <!-- Entries will be loaded dynamically from Brython -->
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div id="pagination_controls" class="section">
+    <!-- Brython script will fill this -->
+  </div>
+
+  <!-- Brython Scripts -->
+  <script src="js/brython.js"></script>
+  <script src="js/brython_stdlib.js"></script>
+  <script src="js/load_brython.js"></script>  
+  <script type="text/python" src="js/gratitude_journal_page_3.bry"></script>
+
+</body>
+</html>

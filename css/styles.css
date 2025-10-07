@@ -1,0 +1,253 @@
+/* --- General Page --- */
+body {
+    background-color: white;
+    font-family: "Courier New", Courier, monospace;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center horizontally */
+    justify-content: flex-start; /* start at top */
+    min-height: 100vh;
+}
+
+/* --- Header (logo + title + version) --- */
+header {
+    text-align: center;
+    margin-top: 20px;
+}
+
+header img, #logo {
+    width: 150px;   /* logo size */
+    height: 150px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+#app_name, header h1 {
+    font-size: 2em;
+    margin: 10px 0 5px 0;
+    color: #1E40AF; /* dark blue */
+    text-align: center;
+}
+
+#version, header h2 {
+    font-size: 1em;
+    margin: 0 0 20px 0;
+    color: #2563EB; /* lighter blue */
+    text-align: center;
+}
+
+/* --- Sections --- */
+.section {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* --- Buttons --- */
+button, .button {
+    background-color: #2563EB; /* blue theme */
+    color: white;
+    border: none;
+    border-radius: 8px; /* rounded corners */
+    padding: 10px 20px;
+    margin: 5px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1em;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s ease;
+}
+
+button:hover, .button:hover {
+    background-color: #1D4ED8; /* darker blue on hover */
+}
+
+button.full-width, .button.full-width {
+    width: 100%;
+}
+
+/* --- Textareas --- */
+textarea.journal-entry {
+    width: 100%;
+    max-width: 600px;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-family: "Courier New", Courier, monospace;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+
+    /* Disable resizing and enable vertical scroll */
+    resize: none;
+    overflow-y: auto;
+    max-height: 150px; /* optional: limit height to show scrollbar */
+}
+
+/* --- Input fields --- */
+input[type="text"], select {
+    width: 100%;
+    max-width: 200px;
+    padding: 8px;
+    margin: 5px 0;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+/* --- Previous / Journal Entries Display --- */
+#previous_entries, #entries_container, #journal_list {
+    width: 100%;
+    max-width: 600px;
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #fafafa;
+    font-family: "Courier New", Courier, monospace;
+    box-sizing: border-box;
+    border-radius: 6px;
+}
+
+/* --- Table styling for page_3 --- */
+.entries-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ccc; /* border around table */
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.entries-table tr.row-even {
+    background-color: #eeeeff;
+}
+
+.entries-table tr.row-odd {
+    background-color: #ccccff;
+}
+
+.entries-table td {
+    padding: 8px;
+    vertical-align: top;
+}
+
+.entries-table td.entry-text {
+    font-size: 14px;
+}
+
+/* --- Pagination buttons --- */
+/*
+.pagination-button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.pagination-button.active {
+    font-weight: bold;
+    background-color: #4a90e2;
+    color: white;
+}
+*/
+
+
+/* --- Pagination buttons --- */
+.pagination-button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    background-color: #cfe0ff; /* lighter blue for inactive */
+    color: #1D4ED8; /* darker blue text */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pagination-button:hover {
+    background-color: #a0c4ff; /* slightly darker on hover */
+}
+
+.pagination-button.active {
+    font-weight: bold;
+    background-color: #2563EB; /* main blue for active page */
+    color: white;
+}
+
+/* --- Print Page (page_6.tpl) --- */
+.print-entries {
+    width: 100%;
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 20px;
+    font-family: "Courier New", Courier, monospace;
+    color: #111;
+    background-color: #fff;
+}
+
+.print-entries h2 {
+    text-align: center;
+    color: #1E40AF; /* same dark blue as header */
+    font-size: 1.4em;
+    margin-bottom: 20px;
+}
+
+.print-entries h3 {
+    color: #2563EB; /* lighter blue for date headers */
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.print-entries p {
+    margin-left: 20px;
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+/* Hide UI elements (like buttons/inputs) during printing */
+@media print {
+    button, form, #settings_button, #about_button, #view_journal_button, #save_journal_button {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+        color: #000;
+    }
+
+    #logo, #app_name, #version {
+        display: none;
+    }
+
+    .print-entries {
+        border: none;
+        box-shadow: none;
+    }
+}
+
+
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+    button, input[type="text"], select {
+        width: 90%;
+    }
+
+    #journal_list, #previous_entries, #entries_container {
+        width: 90%;
+    }
+
+    #logo, header img {
+        width: 100px;
+        height: 100px;
+    }
+}
+

@@ -1,0 +1,16 @@
+{
+  "name": "Gratitude Journal",
+  "short_name": "Journal",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4a90e2",
+  "icons": [
+    {
+      "src": "static/img/gratitude_journal.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ]
+}

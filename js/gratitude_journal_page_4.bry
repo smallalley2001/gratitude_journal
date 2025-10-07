@@ -1,0 +1,37 @@
+from browser import document, window
+
+# ----------------------------
+# Back button (optional)
+# ----------------------------
+# Only needed if you use a regular button instead of form submission
+def go_back(ev):
+    window.location.href = "index.html"
+
+# Check if Back button exists and bind
+if 'back_button' in document:
+    document['back_button'].bind("click", go_back)
+
+# ----------------------------
+# Optional: Show total saved entries
+# ----------------------------
+def show_entry_count():
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(ev):
+        db = request.result
+        txn = db.transaction("journal_entries", "readonly")
+        store = txn.objectStore("journal_entries")
+        get_req = store.count()
+
+        def display_count(ev):
+            count = get_req.result
+            info_div = html.DIV(f"Total saved entries: {count}")
+            info_div.className = "section"
+            document.body <= info_div
+
+        get_req.bind("success", display_count)
+
+    request.bind("success", on_success)
+
+# Uncomment the next line if you want to show total entries on the About page
+# show_entry_count()

@@ -1,0 +1,60 @@
+from browser import document, window, alert
+
+# ----------------------------
+# Load current number_of_days setting
+# ----------------------------
+def load_current_setting():
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = request.result
+        txn = db.transaction("settings", "readonly")
+        store = txn.objectStore("settings")
+        get_req = store.get(1)
+
+        def display_setting(ev):
+            result = get_req.result
+            days = 30
+            if result and 'number_of_days' in result:
+                days = result['number_of_days']
+            document['current_days'].text = str(days)
+            document['number_of_days'].value = str(days)
+
+        get_req.bind("success", display_setting)
+
+    request.bind("success", on_success)
+
+# ----------------------------
+# Save new number_of_days setting
+# ----------------------------
+def save_setting(event):
+    days = int(document['number_of_days'].value)
+    request = window.indexedDB.open("GratitudeJournalDB")
+
+    def on_success(event):
+        db = request.result
+        db.transaction("settings", "readwrite") \
+          .objectStore("settings") \
+          .put({"id": 1, "number_of_days": days})
+        # Update the page immediately
+        document['current_days'].text = str(days)          
+        alert(f"Settings saved: Keep journals for {days} days")
+
+    request.bind("success", on_success)
+
+# ----------------------------
+# Cancel button
+# ----------------------------
+def cancel(event):
+    window.location.href = "index.html"
+
+# ----------------------------
+# Bind buttons
+# ----------------------------
+document['save_button'].bind("click", save_setting)
+document['cancel_button'].bind("click", cancel)
+
+# ----------------------------
+# Initialize
+# ----------------------------
+load_current_setting()

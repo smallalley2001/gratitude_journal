@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Printout - Gratitude Journal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Cache control -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- App theme color -->
+  <meta name="theme-color" content="#4a90e2">
+
+  <!-- PWA Manifest and Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="img/gratitude_journal.png">
+  <link rel="shortcut icon" href="img/gratitude_journal.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('❌ SW registration failed:', err));
+    }
+  </script>
+
+  <!-- Print-specific styling -->
+  <style>
+    @media print {
+      button, nav { display: none; }
+      body { background: white; color: black; }
+      main { margin: 0; padding: 0; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Hidden metadata (Brython can read this) -->
+  <meta name="date_1" content="">
+  <meta name="date_2" content="">
+
+  <!-- Logo -->
+  <img id="logo" src="img/gratitude_journal.png" alt="Logo">
+
+  <!-- App Info -->
+  <div id="app_name">Gratitude Journal</div>
+  <div id="version">Version 1.0</div>
+
+  <!-- Container for Brython to populate -->
+  <main id="print_container" class="print-entries">
+    <h2>Loading entries...</h2>
+  </main>
+
+  <!-- Brython Scripts -->
+  <script src="js/brython.js"></script>
+  <script src="js/brython_stdlib.js"></script>
+  <script src="js/load_brython.js"></script>    
+  <script type="text/python" src="js/gratitude_journal_page_6.bry"></script>
+
+</body>
+</html>

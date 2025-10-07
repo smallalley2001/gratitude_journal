@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gratitude Journal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Cache control -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- App theme color -->
+  <meta name="theme-color" content="#4a90e2">
+
+  <!-- PWA Manifest and Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="img/gratitude_journal.png">
+  <link rel="shortcut icon" href="img/gratitude_journal.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('❌ SW registration failed:', err));
+    }
+  </script>
+</head>
+<body>
+
+  <!-- Logo -->
+  <img id="logo" src="img/gratitude_journal.png" alt="Logo">
+
+  <!-- App Name -->
+  <div id="app_name">Gratitude Journal</div>
+
+  <!-- Version -->
+  <div id="version">Version 1.0</div>
+
+  <!-- Current Date and Time -->
+  <div id="current_datetime" class="section">Today is: <span id="today"></span></div>
+
+  <!-- Journal Entries -->
+  <div id="journal_entries" class="section">
+    <textarea id="entry1" class="journal-entry" placeholder="Gratitude entry 1" rows="3"></textarea>
+    <textarea id="entry2" class="journal-entry" placeholder="Gratitude entry 2" rows="3"></textarea>
+    <textarea id="entry3" class="journal-entry" placeholder="Gratitude entry 3" rows="3"></textarea>
+  </div>
+
+  <!-- Buttons -->
+  <div class="section">
+    <button id="save_journal_button" class="button">Save Journal</button>
+    <button id="view_journal_button" class="button">Previous Entries</button>
+  </div>
+
+  <!-- Settings and About -->
+  <div class="section">
+    <button id="settings_button" class="button">Settings</button>
+    <button id="about_button" class="button">About</button>
+  </div>
+
+  <!-- Brython Scripts -->
+  <script src="js/brython.js"></script>
+  <script src="js/brython_stdlib.js"></script>
+  <script src="js/load_brython.js"></script>  
+  <script type="text/python" src="js/gratitude_journal_page_1.bry"></script>
+
+  <script>
+    document.getElementById("today").textContent = new Date().toISOString().split("T")[0];
+  </script>
+
+</body>
+</html>
