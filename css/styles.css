@@ -46,6 +46,15 @@ header img, #logo {
     max-width: 600px;
 }
 
+/* --- Center buttons section --- */
+.button-section {
+    display: flex;
+    justify-content: center; /* center buttons horizontally */
+    flex-wrap: wrap; /* allow wrapping on small screens */
+    gap: 10px; /* spacing between buttons */
+    margin-top: 10px;
+}
+
 /* --- Buttons --- */
 button, .button {
     background-color: #2563EB; /* blue theme */
