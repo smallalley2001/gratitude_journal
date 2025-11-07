@@ -10,12 +10,12 @@
       "src": "/img/gratitude_journal.png",
       "sizes": "1024x1024",
       "type": "image/png"
-    }
+    },
     {
       "src": "img/gratitude_journal_192.png",
       "sizes": "192x192",
       "type": "image/png"
-    }
+    },
     {
       "src": "img/gratitude_journal_512.png",
       "sizes": "512x512",
