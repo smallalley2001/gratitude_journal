@@ -1,16 +1,12 @@
 {
   "name": "Gratitude Journal",
   "short_name": "Journal",
-  "start_url": "/gratitude_journal",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4a90e2",
   "icons": [
-    {
-      "src": "/img/gratitude_journal.png",
-      "sizes": "1024x1024",
-      "type": "image/png"
-    },
     {
       "src": "img/gratitude_journal_192.png",
       "sizes": "192x192",
@@ -20,7 +16,13 @@
       "src": "img/gratitude_journal_512.png",
       "sizes": "512x512",
       "type": "image/png"
-    }    
+    },
+    {
+      "src": "img/gratitude_journal.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
 
