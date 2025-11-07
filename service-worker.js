@@ -1,5 +1,6 @@
 const CACHE_NAME = 'gratitude-journal-v1';
 const urlsToCache = [
+  './',
   './index.html',
   './about.html',
   './entries.html',
@@ -27,13 +28,12 @@ const urlsToCache = [
   'js/gratitude_journal_page_6.bry'
 ];
 
-// Install phase: pre-cache files
 self.addEventListener('install', event => {
   console.log('🧩 Service Worker: Installed');
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => 
+    caches.open(CACHE_NAME).then(cache =>
       Promise.allSettled(
-        urlsToCache.map(url => 
+        urlsToCache.map(url =>
           cache.add(url).catch(err => {
             console.warn(`⚠️ Failed to cache ${url}:`, err);
           })
@@ -41,9 +41,9 @@ self.addEventListener('install', event => {
       )
     )
   );
+  self.skipWaiting(); // ensures immediate activation on first load
 });
 
-// Activate phase: cleanup old caches
 self.addEventListener('activate', event => {
   console.log('🧩 Service Worker: Activated');
   event.waitUntil(
@@ -53,11 +53,12 @@ self.addEventListener('activate', event => {
       )
     )
   );
+  self.clients.claim(); // ensures SW controls open tabs right away
 });
 
-// Fetch phase: serve cached resources
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(response => response || fetch(event.request))
   );
 });
+
