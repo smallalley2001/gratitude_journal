@@ -1,7 +1,10 @@
+// -------------------------------------
+// GRATITUDE JOURNAL PWA SERVICE WORKER
+// -------------------------------------
 const BASE = '/gratitude_journal/';
-const CACHE_NAME = 'gratitude-journal-v4';
+const CACHE_NAME = 'gratitude-journal-v1';
 
-const urlsToCache = [
+const CORE_ASSETS = [
   BASE,
   BASE + 'index.html',
   BASE + 'about.html',
@@ -25,15 +28,23 @@ const urlsToCache = [
   BASE + 'manifest.json'
 ];
 
+// Install
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache =>
-      Promise.all(urlsToCache.map(url => cache.add(url)))
-    )
+    caches.open(CACHE_NAME).then(async cache => {
+      for (const url of CORE_ASSETS) {
+        try {
+          await cache.add(url);
+        } catch (err) {
+          console.warn('Skipping (not critical):', url, err);
+        }
+      }
+    })
   );
   self.skipWaiting();
 });
 
+// Activate
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -43,16 +54,28 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Fetch
 self.addEventListener('fetch', event => {
-  if (event.request.mode === 'navigate') {
+  const req = event.request;
+
+  if (req.mode === 'navigate') {
     event.respondWith(
-      caches.match(event.request, { ignoreSearch: true })
-        .then(cached => cached || caches.match(BASE + 'index.html'))
+      fetch(req).catch(() => caches.match(BASE + 'index.html'))
     );
-  } else {
-    event.respondWith(
-      caches.match(event.request, { ignoreSearch: true })
-        .then(cached => cached || fetch(event.request))
-    );
+    return;
   }
+
+  event.respondWith(
+    caches.match(req).then(cached => {
+      if (cached) return cached;
+
+      return fetch(req)
+        .then(res => {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(req, resClone));
+          return res;
+        })
+        .catch(() => cached);
+    })
+  );
 });
