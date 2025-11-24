@@ -1,64 +1,72 @@
-const CACHE_NAME = 'gratitude-journal-v1';
+const BASE = "/gratitude_journal/";
+const CACHE_NAME = "gratitude-journal-v3";
+
 const urlsToCache = [
-  './',
-  './index.html',
-  './about.html',
-  './entries.html',
-  './print.html',
-  './printout.html',
-  './settings.html',
+  BASE,
+  BASE + "index.html",
+  BASE + "about.html",
+  BASE + "entries.html",
+  BASE + "print.html",
+  BASE + "printout.html",
+  BASE + "settings.html",
 
   // CSS
-  'css/styles.css',
+  BASE + "css/styles.css",
 
   // Images
-  'img/gratitude_journal.png',
+  BASE + "img/gratitude_journal.png",
+  BASE + "img/gratitude_journal_192.png",
+  BASE + "img/gratitude_journal_512.png",
 
   // JS & Brython
-  'js/brython.js',
-  'js/brython_stdlib.js',
-  'js/load_brython.js',
+  BASE + "js/brython.js",
+  BASE + "js/brython_stdlib.js",
+  BASE + "js/load_brython.js",
 
   // Brython scripts
-  'js/gratitude_journal_page_1.bry',
-  'js/gratitude_journal_page_2.bry',
-  'js/gratitude_journal_page_3.bry',
-  'js/gratitude_journal_page_4.bry',
-  'js/gratitude_journal_page_5.bry',
-  'js/gratitude_journal_page_6.bry'
+  BASE + "js/gratitude_journal_page_1.bry",
+  BASE + "js/gratitude_journal_page_2.bry",
+  BASE + "js/gratitude_journal_page_3.bry",
+  BASE + "js/gratitude_journal_page_4.bry",
+  BASE + "js/gratitude_journal_page_5.bry",
+  BASE + "js/gratitude_journal_page_6.bry"
 ];
 
-self.addEventListener('install', event => {
-  console.log('🧩 Service Worker: Installed');
+self.addEventListener("install", event => {
+  console.log("🧩 Service Worker: Installed");
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache =>
-      Promise.allSettled(
+    caches.open(CACHE_NAME).then(cache => {
+      return Promise.all(
         urlsToCache.map(url =>
           cache.add(url).catch(err => {
-            console.warn(`⚠️ Failed to cache ${url}:`, err);
+            console.warn("⚠️ Failed to cache:", url, err);
           })
         )
-      )
-    )
+      );
+    })
   );
-  self.skipWaiting(); // ensures immediate activation on first load
+
+  self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-  console.log('🧩 Service Worker: Activated');
+self.addEventListener("activate", event => {
+  console.log("🧩 Service Worker: Activated");
+
   event.waitUntil(
-    caches.keys().then(names =>
-      Promise.all(
-        names.filter(name => name !== CACHE_NAME).map(n => caches.delete(n))
-      )
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
-  self.clients.claim(); // ensures SW controls open tabs right away
+
+  self.clients.claim();
 });
 
-self.addEventListener('fetch', event => {
+self.addEventListener("fetch", event => {
   event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+    caches.match(event.request, { ignoreSearch: true })
+      .then(cached => {
+        return cached || fetch(event.request);
+      })
   );
 });
-
