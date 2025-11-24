@@ -23,12 +23,13 @@
 
   <!-- Register Service Worker -->
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(() => console.log('✅ Service Worker registered'))
-        .catch(err => console.error('❌ SW registration failed:', err));
-    }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/gratitude_journal/service-worker.js', { scope: '/gratitude_journal/' })
+      .then(() => console.log('Gratitude Journal Service Worker registered'))
+      .catch(err => console.error('Gratitude SW registration failed:', err));
+  }
   </script>
+  
 </head>
 <body>
 
