@@ -1,4 +1,4 @@
-// Gratitude Journal Service Worker - Auto-cache folders
+// Gratitude Journal Service Worker - Auto-cache folders, query-safe fetch
 const CACHE_NAME = "gratitude-cache-v5";
 const BASE = "/gratitude_journal/";
 
@@ -76,7 +76,7 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch: offline-first strategy with fallback
+// Fetch: offline-first strategy with query-safe matching
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
@@ -84,14 +84,19 @@ self.addEventListener("fetch", (event) => {
   if (!request.url.includes(BASE)) return;
 
   event.respondWith((async () => {
-    const cached = await caches.match(request);
+    // Strip query string for cache matching (fix Brython timestamp issue)
+    const urlWithoutQuery = new URL(request.url);
+    urlWithoutQuery.search = "";
+
+    const cached = await caches.match(urlWithoutQuery.toString());
     if (cached) return cached;
 
     try {
       const response = await fetch(request);
       if (response.ok && request.method === "GET") {
         const cache = await caches.open(CACHE_NAME);
-        await cache.put(request, response.clone());
+        // Cache the response under URL without query string
+        await cache.put(urlWithoutQuery.toString(), response.clone());
       }
       return response;
     } catch (err) {
