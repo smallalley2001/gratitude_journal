@@ -1,5 +1,5 @@
 // Gratitude Journal Service Worker - Auto-cache folders, query-safe fetch
-const CACHE_NAME = "gratitude-cache-v5";
+const CACHE_NAME = "gratitude-cache-v6";
 const BASE = "/gratitude_journal/";
 
 // Base folders to cache
