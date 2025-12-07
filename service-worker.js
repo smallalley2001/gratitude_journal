@@ -1,9 +1,12 @@
-// Gratitude Journal Service Worker
-const CACHE_NAME = "gratitude-cache-v4";
-const BASE = "/gratitude_journal/";  // ✅ Correct scope
+// Gratitude Journal Service Worker - Auto-cache folders
+const CACHE_NAME = "gratitude-cache-v5";
+const BASE = "/gratitude_journal/";
 
-// List of assets to cache
-const ASSETS = [
+// Base folders to cache
+const FOLDERS = ["js/", "css/", "img/"];
+
+// Core files
+const CORE_ASSETS = [
   `${BASE}`,
   `${BASE}index.html`,
   `${BASE}about.html`,
@@ -12,22 +15,38 @@ const ASSETS = [
   `${BASE}printout.html`,
   `${BASE}settings.html`,
   `${BASE}manifest.json`,
-  `${BASE}css/styles.css`,
-  `${BASE}js/brython.js`,
-  `${BASE}js/brython_stdlib.js`,
-  `${BASE}js/load_brython.js`,
-  `${BASE}js/gratitude_journal_page_1.bry`,
-  `${BASE}js/gratitude_journal_page_2.bry`,
-  `${BASE}js/gratitude_journal_page_3.bry`,
-  `${BASE}js/gratitude_journal_page_4.bry`,
-  `${BASE}js/gratitude_journal_page_5.bry`,
-  `${BASE}js/gratitude_journal_page_6.bry`,
-  `${BASE}img/gratitude_journal.png`,
-  `${BASE}img/gratitude_journal_192.png`,
-  `${BASE}img/gratitude_journal_512.png`,
 ];
 
-// Install: cache all assets safely
+// List of known files in each folder (add new files here)
+const JS_FILES = [
+  "brython.js",
+  "brython_stdlib.js",
+  "load_brython.js",
+  "gratitude_journal_page_1.bry",
+  "gratitude_journal_page_2.bry",
+  "gratitude_journal_page_3.bry",
+  "gratitude_journal_page_4.bry",
+  "gratitude_journal_page_5.bry",
+  "gratitude_journal_page_6.bry",
+];
+
+const CSS_FILES = ["styles.css"];
+
+const IMG_FILES = [
+  "gratitude_journal.png",
+  "gratitude_journal_192.png",
+  "gratitude_journal_512.png",
+];
+
+// Combine all assets with proper folder paths
+const ASSETS = [
+  ...CORE_ASSETS,
+  ...JS_FILES.map(f => `${BASE}js/${f}`),
+  ...CSS_FILES.map(f => `${BASE}css/${f}`),
+  ...IMG_FILES.map(f => `${BASE}img/${f}`),
+];
+
+// Install: cache all assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
@@ -43,7 +62,7 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate: remove only old Gratitude caches
+// Activate: remove only old Gratitude Journal caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -71,9 +90,8 @@ self.addEventListener("fetch", (event) => {
     try {
       const response = await fetch(request);
       if (response.ok && request.method === "GET") {
-        const responseClone = response.clone();
         const cache = await caches.open(CACHE_NAME);
-        await cache.put(request, responseClone);
+        await cache.put(request, response.clone());
       }
       return response;
     } catch (err) {
