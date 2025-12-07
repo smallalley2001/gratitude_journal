@@ -1,6 +1,5 @@
-// Gratitude Journal Service Worker (patched)
-
-const CACHE_NAME = "gratitude-cache-v2";
+// Gratitude Journal Service Worker
+const CACHE_NAME = "gratitude-cache-v3";
 const BASE = "/gratitude_journal/";  // ✅ Correct scope
 
 // List of assets to cache
@@ -28,7 +27,7 @@ const ASSETS = [
   `${BASE}img/gratitude_journal_512.png`,
 ];
 
-// Install: cache all assets safely
+// Install: pre-cache all assets safely
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
@@ -44,25 +43,25 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Activate: remove old caches
+// Activate: remove only old Gratitude caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((key) =>
-          key !== CACHE_NAME ? caches.delete(key) : null
-        )
+        keys
+          .filter((key) => key.startsWith("gratitude-cache-") && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
     )
   );
   self.clients.claim();
 });
 
-// Fetch: offline-first strategy
+// Fetch: offline-first strategy with fallback
 self.addEventListener("fetch", (event) => {
   const request = event.request;
 
-  // Only handle requests within the PWA scope
+  // Only handle requests within Gratitude Journal scope
   if (!request.url.includes(BASE)) return;
 
   event.respondWith(
@@ -72,7 +71,6 @@ self.addEventListener("fetch", (event) => {
       return fetch(request)
         .then((res) => {
           if (res.ok && request.method === "GET") {
-            // Cache the response for future offline use
             caches.open(CACHE_NAME).then((cache) =>
               cache.put(request, res.clone())
             );
@@ -80,11 +78,11 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => {
-          // Offline fallback: serve index.html for navigation
+          // Offline fallback for navigation (HTML)
           if (request.destination === "document") {
             return caches.match(`${BASE}index.html`);
           }
-          // Otherwise, return a simple offline response
+          // Offline fallback for other assets
           return new Response("Offline resource not available", {
             status: 404,
             statusText: "Offline",
