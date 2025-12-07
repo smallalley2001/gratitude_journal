@@ -1,5 +1,5 @@
 // Gratitude Journal Service Worker
-const CACHE_NAME = "gratitude-cache-v3";
+const CACHE_NAME = "gratitude-cache-v4";
 const BASE = "/gratitude_journal/";  // ✅ Correct scope
 
 // List of assets to cache
@@ -27,7 +27,7 @@ const ASSETS = [
   `${BASE}img/gratitude_journal_512.png`,
 ];
 
-// Install: pre-cache all assets safely
+// Install: cache all assets safely
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) =>
@@ -64,31 +64,29 @@ self.addEventListener("fetch", (event) => {
   // Only handle requests within Gratitude Journal scope
   if (!request.url.includes(BASE)) return;
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+  event.respondWith((async () => {
+    const cached = await caches.match(request);
+    if (cached) return cached;
 
-      return fetch(request)
-        .then((res) => {
-          if (res.ok && request.method === "GET") {
-            caches.open(CACHE_NAME).then((cache) =>
-              cache.put(request, res.clone())
-            );
-          }
-          return res;
-        })
-        .catch(() => {
-          // Offline fallback for navigation (HTML)
-          if (request.destination === "document") {
-            return caches.match(`${BASE}index.html`);
-          }
-          // Offline fallback for other assets
-          return new Response("Offline resource not available", {
-            status: 404,
-            statusText: "Offline",
-            headers: { "Content-Type": "text/plain" },
-          });
-        });
-    })
-  );
+    try {
+      const response = await fetch(request);
+      if (response.ok && request.method === "GET") {
+        const responseClone = response.clone();
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put(request, responseClone);
+      }
+      return response;
+    } catch (err) {
+      // Offline fallback for navigation (HTML)
+      if (request.destination === "document") {
+        return caches.match(`${BASE}index.html`);
+      }
+      // Offline fallback for other assets
+      return new Response("Offline resource not available", {
+        status: 404,
+        statusText: "Offline",
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+  })());
 });
